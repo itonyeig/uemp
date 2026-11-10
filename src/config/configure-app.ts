@@ -5,6 +5,9 @@ import { AllErrorsExceptionsFilter } from '../common/error/all-error-exceptions'
 import { ResponseFormatterInterceptor } from '../common/interceptors/response-formatter';
 import { SwaggerAuthMiddleware } from '../common/middlewares/swagger-auth.middleware';
 import { GLOBAL_PREFIX } from '../constants';
+import compression from 'compression';
+import morgan from 'morgan';
+import type { Request } from 'express';
 
 export function configureApp(app: INestApplication) {
   const isDev = process.env.NODE_ENV === 'dev';
@@ -28,7 +31,6 @@ export function configureApp(app: INestApplication) {
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup(swaggerPath, app, document, {
       swaggerOptions: {
-        persistAuthorization: true,
         tagsSorter: 'alpha',
         operationsSorter: 'alpha',
         filter: true,
@@ -42,6 +44,13 @@ export function configureApp(app: INestApplication) {
       whitelist: true,
       forbidNonWhitelisted: isDev,
       transform: true,
+    }),
+  );
+  app.use(compression());
+  app.use(
+    morgan('dev', {
+      skip: (req: Request) =>
+        req.originalUrl === `/api/${GLOBAL_PREFIX}/health`,
     }),
   );
   app.use(helmet());
