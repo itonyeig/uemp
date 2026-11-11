@@ -22,7 +22,11 @@ export class AllErrorsExceptionsFilter implements ExceptionFilter {
   private readonly defaultMessage = 'Something went wrong';
 
   private readonly errorStatusMap: Record<string, ErrorStatusDetails> = {
-    ValidationError: { status: HttpStatus.INTERNAL_SERVER_ERROR },
+    ValidationError: { status: HttpStatus.BAD_REQUEST },
+    CastError: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'Invalid identifier',
+    },
     StrictModeError: {
       status: HttpStatus.BAD_REQUEST,
       message: 'Invalid fields in request',

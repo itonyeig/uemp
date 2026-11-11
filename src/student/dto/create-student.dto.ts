@@ -1,6 +1,15 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsInt,
+  IsMongoId,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+  MinLength,
+} from 'class-validator';
 import { EmailDto } from '../../common/dto/email.dto';
 
 export class CreateStudentDto extends EmailDto {
@@ -31,4 +40,14 @@ export class CreateStudentDto extends EmailDto {
     typeof value === 'string' ? value.trim() : value,
   )
   lastName: string;
+
+  @ApiProperty({ description: 'ID of the academic program' })
+  @IsMongoId()
+  program: string;
+
+  @ApiPropertyOptional({ example: 100, default: 100 })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  academicLevel: number = 100;
 }

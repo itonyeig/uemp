@@ -8,6 +8,8 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
+import type { Request } from 'express';
 import type { AuthenticatedRequest } from '../@types/custom';
 import { ResponseFormatter } from '../common/interceptors/response-formatter';
 import { CreateStudentDto } from '../student/dto/create-student.dto';
@@ -25,15 +27,16 @@ export class AuthController {
 
   @Post('students')
   async createStudent(@Body() createStudentDto: CreateStudentDto) {
-    const data = await this.studentService.create(createStudentDto);
+    const [data] = await this.studentService.create([createStudentDto]);
     return ResponseFormatter.Ok({ data, message: 'Student created' });
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @Header('Cache-Control', 'no-store')
-  async login(@Body() loginDto: LoginDto) {
-    const data = await this.authService.login(loginDto);
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  async login(@Body() loginDto: LoginDto, @Req() request: Request) {
+    const data = await this.authService.login(loginDto, request.ip);
     return ResponseFormatter.Ok({
       data,
       message: 'Login successful',
@@ -44,7 +47,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   async logout(@Req() request: AuthenticatedRequest) {
-    await this.authService.logout(request.user.student._id, request.sessionId);
+    await this.authService.logout(
+      request.user.student._id,
+      request.sessionId,
+      request.ip,
+    );
 
     return ResponseFormatter.Ok({ message: 'Logged out successfully' });
   }

@@ -6,6 +6,18 @@ type MongoDuplicateKeyError = {
 
 const DUPLICATE_MESSAGES: Record<string, string> = {
   email: 'This email is already registered',
+  normalizedName: 'A faculty with this name already exists',
+  faculty_normalizedName: 'This department already exists in the faculty',
+  department_normalizedName: 'This program already exists in the department',
+  label: 'This academic session already exists',
+  academicSession_number:
+    'This semester already exists in the academic session',
+  isCurrent: 'A current semester already exists',
+  code: 'This course code already exists',
+  course_semester: 'This course already has an offering in the semester',
+  student_course_semester:
+    'You have already registered for this course this semester',
+  registration: 'A result already exists for this registration',
 };
 
 export function isMongoDuplicateKeyError(

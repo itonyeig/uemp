@@ -10,6 +10,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { isMongoId, isUUID } from 'class-validator';
 import { Model, Types, mongo } from 'mongoose';
 import { randomUUID } from 'node:crypto';
+import { AuditService } from '../audit/audit.service';
+import { AuditAction } from '../audit/schema/audit-log.schema';
 import { verifyPassword } from '../common/utils/password';
 import type { SelectAll } from '../common/utils/types/helpers.types';
 import { SESSION_DURATION_MS } from '../constants';
@@ -26,8 +28,9 @@ import {
   SessionUserType,
 } from './schema/session.schema';
 
+type SessionStudent = StudentIdentity;
 type SessionForAuthentication = Omit<Session, 'user'> & {
-  user: StudentIdentity | null;
+  user: SessionStudent | null;
 };
 
 @Injectable()
@@ -38,13 +41,14 @@ export class AuthService implements OnModuleInit {
     @InjectModel(Session.name)
     private readonly sessionModel: Model<Session>,
     private readonly jwtService: JwtService,
+    private readonly auditService: AuditService,
   ) {}
 
   async onModuleInit() {
     await this.sessionModel.init();
   }
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto, ip?: string) {
     const student = await this.studentModel
       .findOne({ email: loginDto.email })
       .select('+passwordHash')
@@ -94,6 +98,11 @@ export class AuthService implements OnModuleInit {
           _id: payload.sid,
           expiresAt,
         });
+        await this.auditService.record({
+          ...this.auditActor(student._id),
+          action: AuditAction.LOGIN,
+          ip,
+        });
         return { student: toStudentIdentity(student), token, expiresAt };
       } catch (error: unknown) {
         if (
@@ -130,15 +139,20 @@ export class AuthService implements OnModuleInit {
         _id: payload.sid,
         user: payload.sub,
       })
-      .populate<{ user: StudentIdentity | null }>({
+      .populate<{ user: SessionStudent | null }>({
         path: 'user' satisfies keyof Session,
         select: {
           _id: 1,
           email: 1,
+          matricNumber: 1,
           firstName: 1,
           lastName: 1,
+          phoneNumber: 1,
+          address: 1,
           isActive: 1,
-        } satisfies SelectAll<StudentIdentity>,
+          program: 1,
+          academicLevel: 1,
+        } satisfies SelectAll<SessionStudent>,
       })
       .lean<SessionForAuthentication | null>()
       .exec();
@@ -171,8 +185,8 @@ export class AuthService implements OnModuleInit {
     return { student: toStudentIdentity(student), sessionId: session._id };
   }
 
-  async logout(studentId: Types.ObjectId, sessionId: string) {
-    await this.sessionModel
+  async logout(studentId: Types.ObjectId, sessionId: string, ip?: string) {
+    const { modifiedCount } = await this.sessionModel
       .updateOne(
         {
           _id: sessionId,
@@ -188,5 +202,17 @@ export class AuthService implements OnModuleInit {
         },
       )
       .exec();
+
+    if (modifiedCount) {
+      await this.auditService.record({
+        ...this.auditActor(studentId),
+        action: AuditAction.LOGOUT,
+        ip,
+      });
+    }
+  }
+
+  private auditActor(studentId: Types.ObjectId) {
+    return { actor: studentId, actorType: SessionUserType.STUDENT };
   }
 }
