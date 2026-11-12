@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import type { Response } from 'express';
 import { AppController } from './app.controller';
 
 describe('AppController', () => {
@@ -13,6 +14,14 @@ describe('AppController', () => {
   });
 
   it('reports health', () => {
-    expect(appController.health()).toBe('OK');
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
+
+    appController.health(res as unknown as Response);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith('OK');
   });
 });
