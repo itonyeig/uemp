@@ -50,7 +50,7 @@ export function configureApp(app: INestApplication) {
   app.use(
     morgan('dev', {
       skip: (req: Request) =>
-        req.originalUrl === `/api/${GLOBAL_PREFIX}/health`,
+        req.originalUrl === `/api/${GLOBAL_PREFIX}`,
     }),
   );
   app.use(helmet());
