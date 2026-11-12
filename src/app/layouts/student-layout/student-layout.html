@@ -1,0 +1,110 @@
+<a
+  class="skip-link no-print"
+  href="#main-content"
+  (click)="$event.preventDefault(); mainContent.focus()"
+  >Skip to content</a
+>
+<div class="min-h-dvh lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
+  <aside
+    class="portal-sidebar no-print border-r border-line bg-white lg:sticky lg:top-0 lg:h-dvh flex flex-col"
+  >
+    <div class="flex items-center justify-between p-5 lg:px-7 lg:py-8">
+      <a
+        routerLink="/student/dashboard"
+        class="flex items-center gap-3"
+        (click)="menuOpen.set(false)"
+        ><span class="brand-mark">U</span
+        ><span
+          ><span class="block font-bold text-xl tracking-widest">UEMP</span
+          ><span class="text-xs text-muted">Student portal</span></span
+        ></a
+      >
+      <button
+        class="btn-secondary lg:hidden"
+        type="button"
+        [attr.aria-expanded]="menuOpen()"
+        aria-controls="student-nav"
+        (click)="menuOpen.set(!menuOpen())"
+      >
+        {{ menuOpen() ? 'Close' : 'Menu' }}
+      </button>
+    </div>
+    <nav
+      id="student-nav"
+      aria-label="Student navigation"
+      class="px-4 pb-4 lg:block"
+      [class.hidden]="!menuOpen()"
+    >
+      <p class="eyebrow px-3 mb-3 hidden lg:block">WORKSPACE</p>
+      @for (link of links; track link.path) {
+        <a
+          [routerLink]="'/student/' + link.path"
+          routerLinkActive="nav-active"
+          ariaCurrentWhenActive="page"
+          class="nav-link"
+          (click)="menuOpen.set(false)"
+          ><span class="text-xl w-6 text-center" aria-hidden="true">{{ link.icon }}</span
+          >{{ link.label }}</a
+        >
+      }
+    </nav>
+    <div class="mt-auto p-5 hidden lg:block">
+      <div class="rounded-xl bg-paper p-4 text-sm text-muted leading-relaxed">
+        <p class="font-semibold text-ink mb-1">Here for your next step.</p>
+        Your courses and academic records, always within reach.
+      </div>
+      <p class="text-xs text-muted mt-5">University Education<br />Management Portal</p>
+    </div>
+  </aside>
+  <div class="min-w-0">
+    <header
+      class="no-print flex flex-wrap items-center justify-between gap-3 border-b border-line bg-white px-5 sm:px-8 lg:px-10 py-4"
+    >
+      <p class="text-sm text-muted">
+        My workspace <span class="mx-2 text-line">/</span> <span class="text-ink">Student</span>
+      </p>
+      <div class="flex items-center gap-3">
+        @if (auth.student(); as student) {
+          <span class="avatar" aria-hidden="true">{{ auth.initials() }}</span>
+          <div class="hidden sm:block">
+            <p class="text-sm font-semibold">{{ student.firstName }} {{ student.lastName }}</p>
+            <p class="text-xs text-muted">{{ student.matricNumber }}</p>
+          </div>
+        }
+        <button
+          type="button"
+          class="text-sm font-semibold text-muted hover:text-forest ml-2 p-2"
+          [disabled]="signingOut()"
+          (click)="logout()"
+        >
+          {{ signingOut() ? 'Signing out…' : 'Sign out' }}
+        </button>
+      </div>
+    </header>
+    <main
+      #mainContent
+      id="main-content"
+      tabindex="-1"
+      class="portal-main max-w-[1400px] mx-auto p-5 sm:p-8 lg:p-10"
+    >
+      @if (logoutError()) {
+        <p role="alert" class="error mb-6 no-print">
+          Sign out failed: {{ logoutError() }} Please try again.
+        </p>
+      }
+      @if (loading()) {
+        <div class="loading" role="status">Loading your student profile…</div>
+      } @else if (error()) {
+        <div class="error" role="alert">
+          <p>{{ error() }}</p>
+          <button class="btn-secondary mt-3" (click)="load()">Try again</button>
+        </div>
+      } @else {
+        <router-outlet />
+      }
+    </main>
+    <footer class="no-print max-w-[1400px] mx-auto px-5 sm:px-8 lg:px-10 pb-6 text-xs text-muted">
+      UEMP <span class="mx-2">·</span> Student workspace
+    </footer>
+  </div>
+</div>

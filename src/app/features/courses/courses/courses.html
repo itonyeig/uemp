@@ -1,0 +1,153 @@
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">BUILD YOUR SEMESTER</p>
+    <h1>Course registration</h1>
+    <p>Select from the courses available for your program and level.</p>
+  </div>
+  <a routerLink="/student/registered-courses" class="btn-secondary"
+    >View registered courses <span aria-hidden="true">↗</span></a
+  >
+</div>
+@if (success()) {
+  <div class="notice mb-6" role="status">
+    <p>{{ success() }}</p>
+    <a routerLink="/student/registered-courses" class="text-link inline-block mt-2"
+      >View or print your registration summary →</a
+    >
+  </div>
+}
+@if (error()) {
+  <p class="error mb-6" role="alert">{{ error() }}</p>
+}
+@if (loading()) {
+  <div class="loading" role="status">Refreshing available courses…</div>
+} @else if (loadError()) {
+  <div class="error" role="alert">
+    <p>{{ loadError() }}</p>
+    <button class="btn-secondary mt-3" (click)="load()">Retry courses</button>
+  </div>
+} @else if (data(); as available) {
+  <div class="flex flex-wrap gap-3 items-center mb-5">
+    <span class="badge"
+      >{{ available.semester.session }} · Semester {{ available.semester.number }}</span
+    ><span class="text-sm text-muted">Maximum {{ available.maxCreditUnits }} credit units</span>
+  </div>
+  <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px] items-start">
+    <section class="card min-w-0">
+      <div class="p-5 border-b border-line flex items-center justify-between gap-3">
+        <h2 class="section-title">Available courses</h2>
+        <span class="text-xs text-muted">{{ available.courses.length }} courses</span>
+      </div>
+      @if (available.courses.length) {
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Available courses table">
+          <table>
+            <caption class="sr-only">
+              Eligible courses for
+              {{
+                available.semester.session
+              }}, semester
+              {{
+                available.semester.number
+              }}
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col" class="w-12"><span class="sr-only">Select</span></th>
+                <th scope="col">Course</th>
+                <th scope="col">Units</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (course of available.courses; track course.offeringId) {
+                <tr [class.selected-row]="selected().has(course.offeringId)">
+                  <td>
+                    <input
+                      type="checkbox"
+                      class="course-checkbox"
+                      [attr.aria-label]="'Select ' + course.code + ' ' + course.title"
+                      [checked]="course.registered || selected().has(course.offeringId)"
+                      [disabled]="course.registered || busy()"
+                      (change)="toggle(course)"
+                    />
+                  </td>
+                  <td>
+                    <p class="font-semibold">{{ course.code }}</p>
+                    <p class="text-sm text-muted mt-1">{{ course.title }}</p>
+                  </td>
+                  <td class="tabular-nums">{{ course.creditUnits }}</td>
+                  <td>
+                    <span [class]="course.registered ? 'badge' : 'text-xs text-muted'">{{
+                      course.registered ? 'Registered' : 'Available'
+                    }}</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="empty">
+          <h3>No courses available</h3>
+          <p>No courses have been offered for your program and level this semester.</p>
+        </div>
+      }
+    </section>
+    <aside class="card p-6 xl:sticky xl:top-6" aria-label="Registration selection">
+      <h2 class="section-title">Your selection</h2>
+      <p class="text-sm text-muted mt-2 mb-5">Review your courses before submitting.</p>
+      @if (selectedCourses().length) {
+        <ul class="space-y-3 mb-5">
+          @for (course of selectedCourses(); track course.offeringId) {
+            <li class="flex justify-between gap-3 text-sm">
+              <span class="font-semibold">{{ course.code }}</span
+              ><span class="text-muted">{{ course.creditUnits }} units</span>
+            </li>
+          }
+        </ul>
+        <button
+          type="button"
+          class="text-link text-xs mb-5"
+          [disabled]="busy()"
+          (click)="selected.set(emptySelection)"
+        >
+          Clear selection
+        </button>
+      } @else {
+        <p class="text-sm text-muted py-4 mb-4">Select a course to get started.</p>
+      }
+      <dl class="space-y-3 text-sm border-t border-line pt-4">
+        <div class="flex justify-between">
+          <dt>Already registered</dt>
+          <dd>{{ available.registeredCreditUnits }} units</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt>Selected ({{ selectedCourses().length }})</dt>
+          <dd>{{ selectedUnits() }} units</dd>
+        </div>
+        <div class="flex justify-between font-semibold border-t border-line pt-3">
+          <dt>Semester total</dt>
+          <dd>{{ projectedUnits() }} / {{ available.maxCreditUnits }}</dd>
+        </div>
+      </dl>
+      @if (projectedUnits() > available.maxCreditUnits) {
+        <p class="error mt-4 text-xs" role="status">
+          This selection exceeds the semester limit. Remove courses before submitting.
+        </p>
+      }
+      <button
+        class="btn-primary w-full justify-center mt-6"
+        type="button"
+        [disabled]="
+          busy() || !selectedCourses().length || projectedUnits() > available.maxCreditUnits
+        "
+        (click)="register()"
+      >
+        {{ busy() ? 'Registering…' : 'Register selected courses' }}
+      </button>
+      <p class="text-xs text-muted leading-relaxed mt-4">
+        Your registration is confirmed when it has been accepted by the university.
+      </p>
+    </aside>
+  </div>
+}
