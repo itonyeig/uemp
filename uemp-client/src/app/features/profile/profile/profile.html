@@ -1,0 +1,113 @@
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">YOUR DETAILS</p>
+    <h1>My profile</h1>
+    <p>Keep your contact information up to date.</p>
+  </div>
+</div>
+@if (auth.student(); as student) {
+  <section class="card mb-6 grid items-center xl:grid-cols-2 xl:gap-6">
+    <div class="flex min-w-0 items-center gap-5 p-6 sm:p-7">
+      <span class="avatar h-16! w-16! shrink-0 text-xl!" aria-hidden="true">
+        {{ auth.initials() }}
+      </span>
+      <div class="min-w-0">
+        <h2 class="section-title text-xl!">{{ student.firstName }} {{ student.lastName }}</h2>
+        <p class="text-muted mt-1 break-all">{{ student.email }}</p>
+        <span class="badge mt-3"
+          >{{ student.academicLevel }} level ·
+          {{ student.program?.name || 'Program not assigned' }}</span
+        >
+      </div>
+    </div>
+    @if (student.phoneNumber || student.address) {
+      <div class="min-w-0 space-y-2 p-6 pt-0 text-sm font-medium sm:p-7 sm:pt-0 xl:pt-7">
+        @if (student.phoneNumber) {
+          <p>{{ student.phoneNumber }}</p>
+        }
+        @if (student.address) {
+          <p class="whitespace-pre-line wrap-anywhere">{{ student.address }}</p>
+        }
+      </div>
+    }
+  </section>
+  <div class="grid items-start gap-6 xl:grid-cols-2">
+    <section class="card p-6 sm:p-7">
+      <h2 class="section-title">Academic information</h2>
+      <p class="text-muted text-sm mt-2 mb-6">These records are maintained by your university.</p>
+      <dl class="detail-list">
+        <div>
+          <dt>Matriculation number</dt>
+          <dd>{{ student.matricNumber }}</dd>
+        </div>
+        <div>
+          <dt>Program</dt>
+          <dd>{{ student.program?.name || 'Not assigned' }}</dd>
+        </div>
+        <div>
+          <dt>Department</dt>
+          <dd>{{ student.department?.name || 'Not assigned' }}</dd>
+        </div>
+        <div>
+          <dt>Faculty</dt>
+          <dd>{{ student.faculty?.name || 'Not assigned' }}</dd>
+        </div>
+        <div>
+          <dt>Academic level</dt>
+          <dd>{{ student.academicLevel }} level</dd>
+        </div>
+      </dl>
+    </section>
+    <section class="card p-6 sm:p-7">
+      <h2 class="section-title mb-6">Edit contact information</h2>
+      @if (error()) {
+        <p role="alert" class="error mb-5">{{ error() }}</p>
+      }
+      @if (success()) {
+        <p role="status" class="notice mb-5">{{ success() }}</p>
+      }
+      <form [formGroup]="form" (ngSubmit)="save()" class="space-y-5" [attr.aria-busy]="busy()">
+        <div>
+          <label class="field-label" for="phone">Phone number</label
+          ><input
+            id="phone"
+            type="tel"
+            class="field"
+            formControlName="phoneNumber"
+            autocomplete="tel"
+            placeholder="+2348012345678"
+            aria-describedby="phone-help phone-error"
+            [attr.aria-invalid]="
+              form.controls.phoneNumber.touched && form.controls.phoneNumber.invalid
+            "
+          />
+          <p id="phone-help" class="text-xs text-muted mt-2">
+            7–15 digits, with an optional + prefix.
+          </p>
+          <p id="phone-error" class="field-error">
+            @if (form.controls.phoneNumber.touched && form.controls.phoneNumber.invalid) {
+              Enter a valid phone number without spaces.
+            }
+          </p>
+        </div>
+        <div>
+          <label class="field-label" for="address">Address</label
+          ><textarea
+            id="address"
+            class="field"
+            rows="4"
+            formControlName="address"
+            autocomplete="street-address"
+            maxlength="300"
+            aria-describedby="address-help"
+            [attr.aria-invalid]="form.controls.address.touched && form.controls.address.invalid"
+          ></textarea>
+          <p id="address-help" class="text-xs text-muted mt-2">Up to 300 characters.</p>
+        </div>
+        <button type="submit" class="btn-primary" [disabled]="busy() || form.pristine">
+          {{ busy() ? 'Saving…' : 'Save changes' }}
+        </button>
+      </form>
+    </section>
+  </div>
+}

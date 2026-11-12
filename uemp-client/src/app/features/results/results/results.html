@@ -1,0 +1,155 @@
+<app-print-heading title="Student result statement" />
+<div class="page-heading no-print">
+  <div>
+    <p class="eyebrow">YOUR ACADEMIC RECORD</p>
+    <h1>Results & history</h1>
+    <p>Approved results and your progress across semesters.</p>
+  </div>
+  <button
+    class="btn-primary"
+    (click)="print()"
+    [disabled]="loading() || !!error() || !data()?.semesters?.length"
+  >
+    Print / Save PDF
+  </button>
+</div>
+@if (loading()) {
+  <div class="loading" role="status">Loading your approved results…</div>
+} @else if (error()) {
+  <div class="error" role="alert">
+    <p>{{ error() }}</p>
+    <button class="btn-secondary mt-3" (click)="load()">Retry results</button>
+  </div>
+} @else if (data(); as history) {
+  @if (history.semesters.length) {
+    <div class="grid sm:grid-cols-3 gap-4 mb-6">
+      <div class="card p-6">
+        <p class="eyebrow">CUMULATIVE GPA</p>
+        <p class="stat text-forest">{{ history.cgpa | number: '1.2-2' }}</p>
+        <p class="text-xs text-muted">Across all approved results</p>
+      </div>
+      <div class="card p-6">
+        <p class="eyebrow">APPROVED CREDIT UNITS</p>
+        <p class="stat">{{ history.totalCreditUnits }}</p>
+      </div>
+      <div class="card p-6">
+        <p class="eyebrow">SEMESTERS WITH RESULTS</p>
+        <p class="stat">{{ history.semesters.length }}</p>
+      </div>
+    </div>
+    <div class="no-print flex flex-wrap items-end justify-between gap-4 mb-6">
+      <div>
+        <label for="semester-filter" class="field-label">Academic period</label
+        ><select
+          #period
+          id="semester-filter"
+          class="field w-full sm:w-80"
+          [value]="selectedSemester()"
+          (change)="selectedSemester.set(period.value)"
+        >
+          <option value="">All sessions & semesters</option>
+          @for (entry of history.semesters; track entry.semester._id) {
+            <option [value]="entry.semester._id">
+              {{ entry.semester.session }} · Semester {{ entry.semester.number }}
+            </option>
+          }
+        </select>
+      </div>
+      <p class="text-sm text-muted">Only approved results are shown.</p>
+    </div>
+    @for (entry of visibleSemesters(); track entry.semester._id) {
+      <section class="card mb-6 result-section">
+        <div
+          class="p-5 sm:p-6 border-b border-line flex flex-wrap justify-between gap-4 items-center"
+        >
+          <div>
+            <p class="eyebrow">{{ entry.semester.session }} SESSION</p>
+            <h2 class="section-title mt-2">Semester {{ entry.semester.number }}</h2>
+          </div>
+          <div class="flex gap-6 text-sm">
+            <div>
+              <p class="text-muted">Credit units</p>
+              <p class="font-semibold mt-1">{{ entry.totalCreditUnits }}</p>
+            </div>
+            <div>
+              <p class="text-muted">Semester GPA</p>
+              <p class="font-bold text-forest text-xl mt-1">{{ entry.gpa | number: '1.2-2' }}</p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="table-scroll"
+          tabindex="0"
+          role="region"
+          [attr.aria-label]="'Semester ' + entry.semester.number + ' results'"
+        >
+          <table>
+            <caption class="sr-only">
+              {{
+                entry.semester.session
+              }}
+              semester
+              {{
+                entry.semester.number
+              }}
+              results
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Course</th>
+                <th scope="col">Units</th>
+                <th scope="col">CA</th>
+                <th scope="col">Exam</th>
+                <th scope="col">Total</th>
+                <th scope="col">Grade</th>
+                <th scope="col">Point</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (result of entry.results; track result._id) {
+                <tr>
+                  <td>
+                    <p class="font-semibold">{{ result.code }}</p>
+                    <p class="text-sm text-muted mt-1">{{ result.title }}</p>
+                  </td>
+                  <td>{{ result.creditUnits }}</td>
+                  <td>{{ result.caScore }}</td>
+                  <td>{{ result.examScore }}</td>
+                  <td class="font-semibold">{{ result.totalScore }}</td>
+                  <td>
+                    <span class="badge">{{ result.grade }}</span>
+                  </td>
+                  <td>{{ result.gradePoint }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    }
+    <section class="card p-5 no-print">
+      <h2 class="section-title text-sm! mb-3">Grading scale</h2>
+      <div class="flex flex-wrap gap-x-6 gap-y-3">
+        @for (grade of history.gradingScale; track grade.grade) {
+          <p class="text-sm text-muted">
+            <span class="font-semibold text-ink">{{ grade.grade }}</span> · ≥{{ grade.minScore }} ·
+            {{ grade.gradePoint }} points
+          </p>
+        }
+      </div>
+    </section>
+    <p class="text-xs text-muted mt-4">
+      GPA and CGPA are supplied by the university. This student portal copy is not a certified
+      transcript.
+    </p>
+    <p class="text-xs text-muted mt-2 no-print">
+      Printing includes the selected academic period. Choose “Save as PDF” in the print dialog to
+      download.
+    </p>
+  } @else {
+    <section class="card empty">
+      <h2>No approved results yet</h2>
+      <p>Your semester results and GPA will appear here once they are approved.</p>
+    </section>
+  }
+}

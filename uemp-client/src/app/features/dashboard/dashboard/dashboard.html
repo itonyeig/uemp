@@ -1,0 +1,97 @@
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">YOUR ACADEMIC WORKSPACE</p>
+    <h1>Welcome back, {{ auth.student()?.firstName }}.</h1>
+    <p>Here’s where your academic journey stands.</p>
+  </div>
+  @if (registration(); as data) {
+    <span class="badge">{{ data.semester.session }} · Semester {{ data.semester.number }}</span>
+  }
+</div>
+@if (loading()) {
+  <div class="loading" role="status">Loading your academic overview…</div>
+} @else {
+  @if (registrationError() || resultsError()) {
+    <div class="error mb-6" role="alert">
+      <p>{{ registrationError() || resultsError() }}</p>
+      <button class="btn-secondary mt-3" (click)="load()">Retry overview</button>
+    </div>
+  }
+  <div class="grid gap-4 sm:grid-cols-3 mb-7">
+    <div class="card p-6">
+      <p class="eyebrow">REGISTERED COURSES</p>
+      <p class="stat">{{ registration()?.courses?.length ?? '—' }}</p>
+      <a routerLink="/student/registered-courses" class="text-link"
+        >View your courses <span aria-hidden="true">↗</span></a
+      >
+    </div>
+    <div class="card p-6">
+      <p class="eyebrow">CREDIT UNITS</p>
+      <p class="stat">{{ registration()?.totalCreditUnits ?? '—' }}</p>
+      <p class="text-sm text-muted">Current semester</p>
+    </div>
+    <div class="card p-6">
+      <p class="eyebrow">CUMULATIVE GPA</p>
+      <p class="stat">
+        {{ history()?.semesters?.length ? (history()!.cgpa | number: '1.2-2') : '—' }}
+      </p>
+      <p class="text-sm text-muted">
+        {{ history()?.semesters?.length ? 'From approved results' : 'No approved results yet' }}
+      </p>
+    </div>
+  </div>
+}
+<div class="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
+  <section class="bg-forest rounded-2xl p-7 sm:p-9 text-white flex flex-col items-start">
+    <span class="text-xs tracking-[.18em] text-emerald-200 font-semibold">PLAN YOUR SEMESTER</span>
+    <h2 class="font-display text-3xl mt-5 mb-3">Your next chapter<br />starts with a course.</h2>
+    <p class="text-emerald-100/80 leading-relaxed max-w-md mb-7">
+      Explore the courses available for your program and level, then build your semester
+      registration.
+    </p>
+    <a routerLink="/student/courses" class="btn bg-white text-forest mt-auto"
+      >Register courses <span aria-hidden="true">→</span></a
+    >
+  </section>
+  <section class="card p-6 sm:p-7">
+    <div class="flex justify-between gap-3 items-center mb-5">
+      <h2 class="section-title">Student information</h2>
+      <a routerLink="/student/profile" class="text-link">View profile ↗</a>
+    </div>
+    @if (auth.student(); as student) {
+      <dl class="detail-list">
+        <div>
+          <dt>Matriculation number</dt>
+          <dd class="tabular-nums">{{ student.matricNumber }}</dd>
+        </div>
+        <div>
+          <dt>Program</dt>
+          <dd>{{ student.program?.name || 'Not assigned' }}</dd>
+        </div>
+        <div>
+          <dt>Department</dt>
+          <dd>{{ student.department?.name || 'Not assigned' }}</dd>
+        </div>
+        <div>
+          <dt>Faculty</dt>
+          <dd>{{ student.faculty?.name || 'Not assigned' }}</dd>
+        </div>
+        <div>
+          <dt>Academic level</dt>
+          <dd>{{ student.academicLevel }} level</dd>
+        </div>
+      </dl>
+    }
+  </section>
+</div>
+<section class="mt-7 card p-6 flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h2 class="section-title">A clear view of your progress</h2>
+    <p class="text-muted text-sm mt-1">
+      Review approved results, semester GPA, and your academic history.
+    </p>
+  </div>
+  <a routerLink="/student/results" class="btn-secondary"
+    >View results <span aria-hidden="true">→</span></a
+  >
+</section>

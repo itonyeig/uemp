@@ -1,0 +1,90 @@
+<app-print-heading title="Course registration summary" />
+<div class="page-heading no-print">
+  <div>
+    <p class="eyebrow">YOUR SEMESTER</p>
+    <h1>Registered courses</h1>
+    <p>Your confirmed course registration for the current semester.</p>
+  </div>
+  <div class="flex flex-wrap gap-3">
+    <a routerLink="/student/courses" class="btn-secondary">Add courses</a
+    ><button
+      class="btn-primary"
+      (click)="print()"
+      [disabled]="loading() || !!error() || !data()?.courses?.length"
+    >
+      Print / Save PDF
+    </button>
+  </div>
+</div>
+@if (loading()) {
+  <div class="loading" role="status">Loading your registered courses…</div>
+} @else if (error()) {
+  <div class="error" role="alert">
+    <p>{{ error() }}</p>
+    <button class="btn-secondary mt-3" (click)="load()">Retry registration</button>
+  </div>
+} @else if (data(); as summary) {
+  <div class="grid sm:grid-cols-3 gap-4 mb-6">
+    <div class="card p-5">
+      <p class="eyebrow">ACADEMIC PERIOD</p>
+      <p class="text-xl font-semibold mt-3">{{ summary.semester.session }}</p>
+      <p class="text-sm text-muted mt-1">Semester {{ summary.semester.number }}</p>
+    </div>
+    <div class="card p-5">
+      <p class="eyebrow">REGISTERED COURSES</p>
+      <p class="stat">{{ summary.courses.length }}</p>
+    </div>
+    <div class="card p-5">
+      <p class="eyebrow">TOTAL CREDIT UNITS</p>
+      <p class="stat">{{ summary.totalCreditUnits }}</p>
+    </div>
+  </div>
+  <section class="card">
+    @if (summary.courses.length) {
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Registered courses table">
+        <table>
+          <caption class="sr-only">
+            Confirmed course registrations
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Code</th>
+              <th scope="col">Course title</th>
+              <th scope="col">Credit units</th>
+              <th scope="col">Registered on</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (course of summary.courses; track course.registrationId) {
+              <tr>
+                <td class="font-semibold">{{ course.code }}</td>
+                <td>{{ course.title }}</td>
+                <td>{{ course.creditUnits }}</td>
+                <td class="text-muted">{{ course.registeredAt | date: 'mediumDate' }}</td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <th scope="row" colspan="2">Total credit units</th>
+              <td class="font-bold">{{ summary.totalCreditUnits }}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    } @else {
+      <div class="empty">
+        <h2>No courses registered yet</h2>
+        <p>Select your courses to start the semester.</p>
+        <a routerLink="/student/courses" class="btn-primary mt-5">Explore available courses →</a>
+      </div>
+    }
+  </section>
+  @if (summary.courses.length) {
+    <p class="text-xs text-muted mt-4 no-print">
+      Use “Print / Save PDF” and choose “Save as PDF” in your browser’s print dialog to download a
+      copy.
+    </p>
+  }
+}

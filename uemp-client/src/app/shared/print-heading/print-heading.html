@@ -1,0 +1,14 @@
+<div class="print-only mb-6 border-b border-line pb-5">
+  <p class="text-xs tracking-widest uppercase">University Education Management Portal</p>
+  <h1 class="font-display text-3xl mt-2">{{ title() }}</h1>
+  @if (auth.student(); as student) {
+    <p class="mt-3 font-semibold">
+      {{ student.firstName }} {{ student.lastName }} · {{ student.matricNumber }}
+    </p>
+    <p>{{ student.program?.name || 'Program not assigned' }} · {{ student.academicLevel }} level</p>
+    <p>{{ student.department?.name }} · {{ student.faculty?.name }}</p>
+  }
+  <p class="text-sm text-muted mt-2">
+    Generated {{ date | date: 'mediumDate' }} · Student portal copy
+  </p>
+</div>
