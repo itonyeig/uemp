@@ -5,8 +5,8 @@ import type { Response } from 'express';
 @ApiTags('Health')
 @Controller()
 export class AppController {
-  @Get(@Res() response: Response)
-  health(@Res() response: Response) {
-    response.status(200).send('OK');
+  @Get()
+  health(@Res() res: Response) {
+    res.status(200).send('OK');
   }
 }
