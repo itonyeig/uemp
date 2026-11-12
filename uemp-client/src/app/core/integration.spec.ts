@@ -82,6 +82,26 @@ describe('Student API and session integration', () => {
     request.flush({});
     await operation;
   });
+  it('reuses the login profile without requesting students/me again', async () => {
+    await login();
+
+    expect(await auth.loadStudent()).toEqual(student);
+    http.expectNone(base + '/students/me');
+  });
+  it('fetches and caches missing student details for an existing session', async () => {
+    await login();
+    auth.student.set(null);
+
+    const operation = auth.loadStudent();
+    const request = http.expectOne(base + '/students/me');
+    expect(request.request.headers.get('Authorization')).toBe('Bearer test-token');
+    request.flush(wrap({ student }));
+
+    expect(await operation).toEqual(student);
+    expect(auth.student()).toEqual(student);
+    expect(await auth.loadStudent()).toEqual(student);
+    http.expectNone(base + '/students/me');
+  });
   it('submits offeringIds, with no student ID or academic fields', async () => {
     const operation = firstValueFrom(TestBed.inject(StudentApi).register(['offering-1']));
     const request = http.expectOne(base + '/registration');

@@ -51,6 +51,9 @@ export class Auth {
     this.scheduleExpiry();
   }
   async loadStudent() {
+    const cachedStudent = this.student();
+    if (cachedStudent) return cachedStudent;
+
     const student = await firstValueFrom(this.api.profile());
     this.student.set(student);
     return student;
