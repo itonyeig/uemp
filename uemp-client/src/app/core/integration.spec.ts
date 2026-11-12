@@ -98,7 +98,9 @@ describe('Student API and session integration', () => {
   });
   it('clears a rejected session and redirects to login on a protected 401', async () => {
     await login();
-    const navigation = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'url', 'get').mockReturnValue('/student/results?semester=2');
+    const navigation = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     const operation = firstValueFrom(TestBed.inject(StudentApi).profile()).catch((error) => error);
     http
       .expectOne(base + '/students/me')
@@ -106,7 +108,9 @@ describe('Student API and session integration', () => {
     await operation;
     expect(auth.token()).toBeNull();
     expect(auth.student()).toBeNull();
-    expect(navigation).toHaveBeenCalledWith(['/student/login']);
+    expect(navigation).toHaveBeenCalledWith(['/student/login'], {
+      queryParams: { returnUrl: '/student/results?semester=2' },
+    });
   });
   it('revokes the server session before clearing local state on logout', async () => {
     await login();

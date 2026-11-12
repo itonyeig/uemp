@@ -65,9 +65,10 @@ export class Auth {
   }
   expire() {
     if (!this.session()) return;
+    const returnUrl = this.router.currentNavigation()?.finalUrl?.toString() ?? this.router.url;
     this.clear();
     this.notice.set('Your session has ended. Please sign in again.');
-    void this.router.navigate(['/student/login']);
+    void this.router.navigate(['/student/login'], { queryParams: { returnUrl } });
   }
   clear() {
     this.session.set(null);

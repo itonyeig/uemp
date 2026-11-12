@@ -23,7 +23,9 @@ The backend must be running separately. This frontend does not start or seed the
 
 ## Configuration and API integration
 
-Set `apiUrl` in `src/environments/environment.ts` before building. The local default is `http://localhost:5000/api/v1`. This value is public configuration; never put secrets in the frontend. For deployment, use an HTTPS API URL and configure the web host to fall back to `index.html` for Angular routes.
+Set `UEMP_API_URL` to the public API base URL, including `/api/v1`. For local development, copy `.env.example` to `.env` and set the value before running `npm start`. The default is `https://uemp-z9pi.onrender.com/api/v1`.
+
+Configure the frontend host to serve `/index.html` with HTTP 200 for Angular routes such as `/student/profile` and `/student/results`. Use a rewrite that keeps the requested path and query string. This lets Angular handle direct links and reloads. A valid student session survives a reload in the same tab. If the session has expired, sign-in returns the student to the requested page.
 
 The API wraps successful responses as `{ success, statusCode, message, data }`. Errors contain a string or array in `message`. Services unwrap `data`, and pages show backend validation errors without inventing academic rules.
 
@@ -60,14 +62,11 @@ Academic records are read-only. Eligibility, duplicate checks, credit limits, gr
 ```sh
 npm run build
 npm test -- --watch=false
-node scripts/verify-api.mjs
 ```
 
 Production output: `dist/uemp-client/browser`. Unit tests cover token boundaries, session revocation, API payloads/wrappers, validation feedback, and registration refresh after success or conflicts.
 
-The optional live smoke script uses the backend’s seeded `demo.student2@example.test` account and documented demo password `DemoStudentPass123!`. Override with `UEMP_API_URL`, `UEMP_TEST_EMAIL`, and `UEMP_TEST_PASSWORD`. It tests authentication, reads, rejected invalid/unavailable/duplicate registrations, and logout. It does not submit new registrations or edit profiles, but logging in **replaces the demo account’s current session**.
-
-For an assessment demo, the same seeded account includes two historical semesters. Use the backend’s seed/setup instructions if demo accounts are unavailable.
+For an assessment demo, the backend’s seeded `demo.student2@example.test` account includes two historical semesters. See the backend’s seed/setup instructions for demo credentials.
 
 ## Scope and backend limits
 
