@@ -13,12 +13,7 @@ npm ci
 npm start
 ```
 
-Open `http://localhost:4200/student`. If port 4200 is occupied:
-
-```sh
-npm start -- --host 127.0.0.1 --port 4201
-```
-
+Open `http://localhost:4200/student`. 
 The backend must be running separately. This frontend does not start or seed the API.
 
 ## Configuration and API integration
