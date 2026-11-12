@@ -2,7 +2,6 @@
 
 Backend for the UEMP practical assessment. It implements the **Student workflow** MVP: secure login, the student's profile and academic placement, course registration for the current semester, approved results, semester GPA and CGPA.
 
-
 ## Tech stack
 
 NestJS 11 (TypeScript), MongoDB with Mongoose, JWT sessions, bcrypt, class-validator, Jest and Supertest.
@@ -15,6 +14,7 @@ cp .env.example .env    # set MONGO_URI, JWT_SECRET and DEMO_STUDENT_PASSWORD
 npm run seed            # demo academic data, students and results
 npm run start:dev
 ```
+
 The seed can be run repeatedly without creating duplicates.
 
 local url: http://localhost:4000/api/v1
@@ -23,19 +23,19 @@ local url: http://localhost:4000/api/v1
 
 All demo students use the password `DemoStudentPass123!`.
 
-| Student | Email | Program and level |
-| --- | --- | --- |
-| Tobi Ade | `demo.student1@example.test` | Computer Science, 100 level |
-| Amara Okafor | `demo.student2@example.test` | Computer Science, 200 level (two semesters of results) |
-| Aisha Bello | `demo.student3@example.test` | Electrical Engineering, 100 level |
-| David Okon | `demo.student4@example.test` | Computer Science, 100 level |
-| Chinedu Eze | `demo.student5@example.test` | Software Engineering, 100 level |
-| Fatima Yusuf | `demo.student6@example.test` | Software Engineering, 200 level (two semesters of results) |
-| Kemi Adeyemi | `demo.student7@example.test` | Mathematics, 100 level |
-| Ibrahim Musa | `demo.student8@example.test` | Statistics, 100 level |
-| Ngozi Obi | `demo.student9@example.test` | Civil Engineering, 100 level |
-| Emeka Nwosu | `demo.student10@example.test` | Business Administration, 100 level |
-| Zainab Lawal | `demo.student11@example.test` | Accounting, 100 level |
+| Student      | Email                         | Program and level                                          |
+| ------------ | ----------------------------- | ---------------------------------------------------------- |
+| Tobi Ade     | `demo.student1@example.test`  | Computer Science, 100 level                                |
+| Amara Okafor | `demo.student2@example.test`  | Computer Science, 200 level (two semesters of results)     |
+| Aisha Bello  | `demo.student3@example.test`  | Electrical Engineering, 100 level                          |
+| David Okon   | `demo.student4@example.test`  | Computer Science, 100 level                                |
+| Chinedu Eze  | `demo.student5@example.test`  | Software Engineering, 100 level                            |
+| Fatima Yusuf | `demo.student6@example.test`  | Software Engineering, 200 level (two semesters of results) |
+| Kemi Adeyemi | `demo.student7@example.test`  | Mathematics, 100 level                                     |
+| Ibrahim Musa | `demo.student8@example.test`  | Statistics, 100 level                                      |
+| Ngozi Obi    | `demo.student9@example.test`  | Civil Engineering, 100 level                               |
+| Emeka Nwosu  | `demo.student10@example.test` | Business Administration, 100 level                         |
+| Zainab Lawal | `demo.student11@example.test` | Accounting, 100 level                                      |
 
 ## API endpoints
 
@@ -45,16 +45,16 @@ Swagger doc: `http://localhost:5000/docs/v1`
 userName: process.env.SWAGGER_USERNAME
 password: process.env.SWAGGER_PASSWORD
 
-| Method | Path | Description |
-| --- | --- | --- |
-| `POST` | `/auth/login` | Log in, returns a token |
-| `POST` | `/auth/logout` | End the session |
-| `GET` | `/students/me` | Profile, matric number, program, department, faculty, level |
-| `PATCH` | `/students/me` | Update phone number and address |
-| `GET` | `/registration/available-courses` | Courses open to the student this semester |
-| `POST` | `/registration` | Register courses (`{ "offeringIds": [...] }`) |
-| `GET` | `/registration` | Registered courses and total units |
-| `GET` | `/students/me/results` | Approved results by semester, GPA and CGPA |
+| Method  | Path                              | Description                                                 |
+| ------- | --------------------------------- | ----------------------------------------------------------- |
+| `POST`  | `/auth/login`                     | Log in, returns a token                                     |
+| `POST`  | `/auth/logout`                    | End the session                                             |
+| `GET`   | `/students/me`                    | Profile, matric number, program, department, faculty, level |
+| `PATCH` | `/students/me`                    | Update phone number and address                             |
+| `GET`   | `/registration/available-courses` | Courses open to the student this semester                   |
+| `POST`  | `/registration`                   | Register courses (`{ "offeringIds": [...] }`)               |
+| `GET`   | `/registration`                   | Registered courses and total units                          |
+| `GET`   | `/students/me/results`            | Approved results by semester, GPA and CGPA                  |
 
 ## Architecture
 
@@ -213,14 +213,14 @@ erDiagram
 
 CA is scored out of 40 and the exam out of 60. The scale is defined in `src/result/grading.ts`.
 
-| Score | Grade | Point |
-| --- | --- | --- |
-| 70–100 | A | 5 |
-| 60–69 | B | 4 |
-| 50–59 | C | 3 |
-| 45–49 | D | 2 |
-| 40–44 | E | 1 |
-| 0–39 | F | 0 |
+| Score  | Grade | Point |
+| ------ | ----- | ----- |
+| 70–100 | A     | 5     |
+| 60–69  | B     | 4     |
+| 50–59  | C     | 3     |
+| 45–49  | D     | 2     |
+| 40–44  | E     | 1     |
+| 0–39   | F     | 0     |
 
 GPA = sum of (units × grade point) ÷ sum of units, rounded to 2 decimal places. CGPA applies the same formula to all approved results.
 
