@@ -20,6 +20,7 @@ import {
   type StudentIdentity,
   toStudentIdentity,
 } from '../student/schema/student.schema';
+import { StudentService } from '../student/student.service';
 import { LoginDto } from './dto/login.dto';
 import type { SessionTokenPayload } from './interface/auth.interface';
 import {
@@ -42,6 +43,7 @@ export class AuthService implements OnModuleInit {
     private readonly sessionModel: Model<Session>,
     private readonly jwtService: JwtService,
     private readonly auditService: AuditService,
+    private readonly studentService: StudentService,
   ) {}
 
   async onModuleInit() {
@@ -68,6 +70,7 @@ export class AuthService implements OnModuleInit {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    const profile = await this.studentService.populateProfile(student);
     const owner = { user: student._id, userType: SessionUserType.STUDENT };
     const exp = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
     const expiresAt = new Date(exp * 1000);
@@ -103,7 +106,7 @@ export class AuthService implements OnModuleInit {
           action: AuditAction.LOGIN,
           ip,
         });
-        return { student: toStudentIdentity(student), token, expiresAt };
+        return { student: profile, token, expiresAt };
       } catch (error: unknown) {
         if (
           !(error instanceof mongo.MongoServerError) ||

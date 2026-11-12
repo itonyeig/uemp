@@ -7,7 +7,7 @@ import {
   Post,
   Req,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import type { AuthenticatedRequest } from '../@types/custom';
@@ -25,6 +25,7 @@ export class AuthController {
     private readonly studentService: StudentService,
   ) {}
 
+  @ApiOperation({ summary: 'Create a new student for my testing purposes' })
   @Post('students')
   async createStudent(@Body() createStudentDto: CreateStudentDto) {
     const [data] = await this.studentService.create([createStudentDto]);

@@ -196,6 +196,18 @@ describe('Student authentication (e2e)', () => {
     expect(firstLogin.body).not.toHaveProperty('data.sessionId');
     expect(firstLogin.body).not.toHaveProperty('data.student.passwordHash');
     expect(firstLogin.headers['cache-control']).toBe('no-store');
+    expect(firstLogin.body).toHaveProperty(
+      'data.student.program.name',
+      program.name,
+    );
+    expect(firstLogin.body).toHaveProperty(
+      'data.student.department.name',
+      department.name,
+    );
+    expect(firstLogin.body).toHaveProperty(
+      'data.student.faculty.name',
+      faculty.name,
+    );
 
     const firstStudent = await studentModel.findOne({ email }).orFail().exec();
     const secondToken = getToken(await login());

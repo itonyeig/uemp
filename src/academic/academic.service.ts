@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import type { SelectAll } from '../common/utils/types/helpers.types';
 import { AcademicSession } from './schema/academic-session.schema';
 import { Department } from './schema/department.schema';
@@ -8,13 +8,6 @@ import { Faculty } from './schema/faculty.schema';
 import { Program } from './schema/program.schema';
 import { Semester } from './schema/semester.schema';
 
-type FacultySummary = Pick<Faculty, '_id' | 'name'>;
-type DepartmentPlacement = Pick<Department, '_id' | 'name'> & {
-  faculty: FacultySummary | null;
-};
-type ProgramPlacement = Pick<Program, '_id' | 'name'> & {
-  department: DepartmentPlacement | null;
-};
 type SessionSummary = Pick<AcademicSession, '_id' | 'label'>;
 type SemesterWithSession = Pick<Semester, '_id' | 'number'> & {
   academicSession: SessionSummary | null;
@@ -150,39 +143,5 @@ export class AcademicService implements OnModuleInit {
       throw new NotFoundException('No semester is currently open');
     }
     return toSemesterSummary(semester);
-  }
-
-  async findPlacement(programId: Types.ObjectId) {
-    const program = await this.programModel
-      .findById(programId)
-      .select({
-        _id: 1,
-        name: 1,
-        department: 1,
-      } satisfies SelectAll<ProgramPlacement>)
-      .populate<{ department: DepartmentPlacement | null }>({
-        path: 'department' satisfies keyof Program,
-        select: {
-          _id: 1,
-          name: 1,
-          faculty: 1,
-        } satisfies SelectAll<DepartmentPlacement>,
-        populate: {
-          path: 'faculty' satisfies keyof Department,
-          select: { _id: 1, name: 1 } satisfies SelectAll<FacultySummary>,
-        },
-      })
-      .lean<ProgramPlacement | null>()
-      .exec();
-
-    if (!program?.department?.faculty) {
-      return null;
-    }
-
-    const {
-      department: { faculty, ...department },
-      ...programSummary
-    } = program;
-    return { program: programSummary, department, faculty };
   }
 }

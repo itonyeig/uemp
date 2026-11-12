@@ -2,8 +2,6 @@
 
 Backend for the UEMP practical assessment. It implements the **Student workflow** MVP: secure login, the student's profile and academic placement, course registration for the current semester, approved results, semester GPA and CGPA.
 
-- **Live API:** `<add Render URL>/api/v1`
-- **Frontend:** `<add frontend URL>`
 
 ## Tech stack
 
@@ -17,8 +15,9 @@ cp .env.example .env    # set MONGO_URI, JWT_SECRET and DEMO_STUDENT_PASSWORD
 npm run seed            # demo academic data, students and results
 npm run start:dev
 ```
+The seed can be run repeatedly without creating duplicates.
 
-The seed can be run repeatedly without creating duplicates. In production, run `npm run build`, then `npm run seed:prod` and `npm run start:prod`.
+local url: http://localhost:4000/api/v1
 
 ## Test credentials
 
@@ -41,6 +40,10 @@ All demo students use the password `DemoStudentPass123!`.
 ## API endpoints
 
 All routes are under `/api/v1` and need `Authorization: Bearer <token>`, except login.
+
+Swagger doc: `http://localhost:5000/docs/v1`
+userName: process.env.SWAGGER_USERNAME
+password: process.env.SWAGGER_PASSWORD
 
 | Method | Path | Description |
 | --- | --- | --- |
@@ -94,9 +97,8 @@ erDiagram
   PROGRAM ||--o{ ELIGIBILITY : "listed in"
   PROGRAM ||--o{ STUDENT : enrolls
   STUDENT ||--o{ COURSE_REGISTRATION : makes
-  STUDENT ||--o{ COURSE_REGISTRATION_BATCH : submits
-  SEMESTER ||--o{ COURSE_REGISTRATION_BATCH : receives
   COURSE_OFFERING ||--o{ COURSE_REGISTRATION : "registered as"
+  SEMESTER ||--o{ COURSE_REGISTRATION : covers
   COURSE_REGISTRATION ||--o| RESULT : "graded by"
   STUDENT ||--o{ SESSION : "logs in with"
   STUDENT ||--o{ AUDIT_LOG : performs
@@ -160,20 +162,17 @@ erDiagram
     ObjectId offering FK
     ObjectId course FK
     ObjectId semester FK
+    ObjectId program FK
     int academicLevel
     int creditUnits
-  }
-  COURSE_REGISTRATION_BATCH {
-    ObjectId id PK
-    ObjectId student FK
-    ObjectId semester FK
-    int sequence "unique with student and semester"
-    array registrations "embedded course records"
   }
   RESULT {
     ObjectId id PK
     ObjectId registration FK
     ObjectId student FK
+    ObjectId course FK
+    ObjectId semester FK
+    int creditUnits
     number caScore
     number examScore
     number totalScore
@@ -184,12 +183,14 @@ erDiagram
   SESSION {
     string id PK
     ObjectId user FK
+    string userType
     date expiresAt
     date revokedAt
   }
   AUDIT_LOG {
     ObjectId id PK
     ObjectId actor FK
+    string actorType
     string action
     object details
     date createdAt
@@ -197,7 +198,7 @@ erDiagram
 ```
 
 - **Course offerings:** A course offering places a course in a semester and lists which programs and levels can take it.
-- **Course registrations:** Each submission saves all its courses in one document, with the student's level and course units recorded at registration time. A unique student, semester and sequence key makes concurrent requests reload and recheck duplicate courses and the credit limit. Existing per-course records also count toward both checks.
+- **Course registrations:** One document per course. The student's program, level and the course units are copied at registration time. A unique index on student, course and semester blocks duplicates.
 
 ## Permissions
 

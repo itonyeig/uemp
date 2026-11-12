@@ -7,15 +7,30 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { randomInt } from 'node:crypto';
+import type { Department } from '../academic/schema/department.schema';
+import type { Faculty } from '../academic/schema/faculty.schema';
 import { Program } from '../academic/schema/program.schema';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/schema/audit-log.schema';
 import { SessionUserType } from '../auth/schema/session.schema';
 import { isMongoDuplicateKeyError } from '../common/utils/mongo-duplicate-key';
 import { hashPassword } from '../common/utils/password';
+import type { SelectAll } from '../common/utils/types/helpers.types';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { Student, toStudentIdentity } from './schema/student.schema';
+import {
+  Student,
+  type StudentIdentity,
+  toStudentIdentity,
+} from './schema/student.schema';
+
+type FacultySummary = Pick<Faculty, '_id' | 'name'>;
+type DepartmentPlacement = Pick<Department, '_id' | 'name'> & {
+  faculty: FacultySummary | null;
+};
+type ProgramPlacement = Pick<Program, '_id' | 'name'> & {
+  department: DepartmentPlacement | null;
+};
 
 const MATRIC_NUMBER_MAX_ATTEMPTS = 5;
 const MATRIC_NUMBER_ERROR = 'Could not generate a unique matriculation number';
@@ -32,6 +47,43 @@ export class StudentService implements OnModuleInit {
 
   async onModuleInit() {
     await this.studentModel.init();
+  }
+
+  async populateProfile(student: StudentIdentity) {
+    const profile = toStudentIdentity(student);
+    const { program } = await this.studentModel.populate<{
+      program: ProgramPlacement | null;
+    }>(profile, {
+      path: 'program' satisfies keyof Student,
+      select: {
+        _id: 1,
+        name: 1,
+        department: 1,
+      } satisfies SelectAll<ProgramPlacement>,
+      options: { lean: true },
+      populate: {
+        path: 'department' satisfies keyof Program,
+        select: {
+          _id: 1,
+          name: 1,
+          faculty: 1,
+        } satisfies SelectAll<DepartmentPlacement>,
+        populate: {
+          path: 'faculty' satisfies keyof Department,
+          select: { _id: 1, name: 1 } satisfies SelectAll<FacultySummary>,
+        },
+      },
+    });
+    const department = program?.department;
+
+    return {
+      ...profile,
+      program: program ? { _id: program._id, name: program.name } : null,
+      department: department
+        ? { _id: department._id, name: department.name }
+        : null,
+      faculty: department?.faculty ?? null,
+    };
   }
 
   async create(students: CreateStudentDto[]) {
